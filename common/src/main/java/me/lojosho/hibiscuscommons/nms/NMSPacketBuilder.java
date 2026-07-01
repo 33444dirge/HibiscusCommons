@@ -1,7 +1,6 @@
 package me.lojosho.hibiscuscommons.nms;
 
 import it.unimi.dsi.fastutil.ints.IntList;
-import me.lojosho.hibiscuscommons.packets.wrapper.PacketWrapper;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -17,25 +16,25 @@ import java.util.UUID;
 
 public interface NMSPacketBuilder {
 
-    PacketWrapper buildEntityMovePacket(int entityId, @NotNull Location from, @NotNull Location to, boolean onGround);
+    Object buildEntityMovePacket(int entityId, @NotNull Location from, @NotNull Location to, boolean onGround);
 
-    PacketWrapper buildEntityLookAtPacket(int entityId, @NotNull Location location);
+    Object buildEntityLookAtPacket(int entityId, @NotNull Location location);
 
-    default PacketWrapper buildEntityRotatePacket(int entityId, Location location, boolean onGround) {
+    default Object buildEntityRotatePacket(int entityId, Location location, boolean onGround) {
         return buildEntityRotatePacket(entityId, location.getYaw(), location.getPitch(), onGround);
     }
-    PacketWrapper buildEntityRotatePacket(int entityId, float originalYaw, float pitch, boolean onGround);
+    Object buildEntityRotatePacket(int entityId, float originalYaw, float pitch, boolean onGround);
 
-    default PacketWrapper buildEntityRotateHeadPacket(int entityId, @NotNull Location location) {
+    default Object buildEntityRotateHeadPacket(int entityId, @NotNull Location location) {
         return buildEntityRotateHeadPacket(entityId, location.getYaw());
     }
-    PacketWrapper buildEntityRotateHeadPacket(int entityId, float yaw);
+    Object buildEntityRotateHeadPacket(int entityId, float yaw);
 
-    PacketWrapper buildEntityMountPacket(int mountId, int[] passengerIds);
+    Object buildEntityMountPacket(int mountId, int[] passengerIds);
 
-    PacketWrapper buildEntityLeashPacket(int leashEntity, int entityId);
+    Object buildEntityLeashPacket(int leashEntity, int entityId);
 
-    PacketWrapper buildEntityTeleportPacket(int entityId,
+    Object buildEntityTeleportPacket(int entityId,
                                             double x,
                                             double y,
                                             double z,
@@ -43,9 +42,9 @@ public interface NMSPacketBuilder {
                                             float pitch,
                                             boolean onGround);
 
-    PacketWrapper buildEntityCameraPacket(int entityId);
+    Object buildEntityCameraPacket(int entityId);
 
-    default PacketWrapper buildEntitySpawnPacket(
+    default Object buildEntitySpawnPacket(
             int entityId,
             @NotNull UUID uuid,
             @NotNull EntityType entityType,
@@ -53,7 +52,7 @@ public interface NMSPacketBuilder {
     ) {
         return buildEntitySpawnPacket(entityId, uuid, entityType, location.x(), location.y(), location.z(), location.getYaw(), location.getPitch());
     }
-    PacketWrapper buildEntitySpawnPacket(
+    Object buildEntitySpawnPacket(
             int entityId,
             @NotNull UUID uuid,
             @NotNull EntityType entityType,
@@ -64,35 +63,35 @@ public interface NMSPacketBuilder {
             float pitch
     );
 
-    PacketWrapper buildEntityMetadataPacket(int entityId, Map<Integer, Number> dataValues);
+    Object buildEntityMetadataPacket(int entityId, Map<Integer, Number> dataValues);
 
-    PacketWrapper buildEntityDestroyPacket(IntList entityIds);
+    Object buildEntityDestroyPacket(IntList entityIds);
 
-    PacketWrapper buildEntityAttributePacket(
+    Object buildEntityAttributePacket(
             int entityId,
             Attribute attribute,
             double value
     );
 
-    PacketWrapper buildEntityEquipmentSlotUpdatePacket(
+    Object buildEntityEquipmentSlotUpdatePacket(
             int entityId,
             @NotNull Map<EquipmentSlot, ItemStack> equipment
     );
 
-    PacketWrapper buildPlayerSlotUpdatePacket(Player player, int slot);
+    Object buildPlayerSlotUpdatePacket(Player player, int slot);
 
-    PacketWrapper buildPlayerGamemodeChangePacket(@NotNull GameMode gameMode);
+    Object buildPlayerGamemodeChangePacket(@NotNull GameMode gameMode);
 
-    PacketWrapper buildPlayerInfoAddPacket(
+    Object buildPlayerInfoAddPacket(
             @NotNull final Player skinnedPlayer,
             final int entityId,
             @NotNull final UUID uuid,
             @NotNull final String npcName
     );
 
-    PacketWrapper buildPlayerInfoRemovePacket(List<UUID> uuids);
+    Object buildPlayerInfoRemovePacket(List<UUID> uuids);
 
-    PacketWrapper buildPlayerScoreboardRemovePacket(Player player, String name);
-    PacketWrapper buildPlayerScoreboardCreatePacket(Player player, String name);
-    PacketWrapper buildPlayerScoreboardAddPlayersPacket(Player player, String name);
+    Object buildPlayerScoreboardRemovePacket(Player player, String name);
+    Object buildPlayerScoreboardCreatePacket(Player player, String name);
+    Object buildPlayerScoreboardAddPlayersPacket(Player player, String name);
 }
