@@ -42,6 +42,11 @@ public interface PacketInterface {
         // Override
     }
 
+    default PacketAction readPlayerPosition(@NotNull Player player, @NotNull PlayerPositionWrapper wrapper) {
+        return PacketAction.NOTHING;
+        // Override
+    }
+
     default PacketAction readEntityHandle(@NotNull Player player, @NotNull PlayerInteractWrapper wrapper) {
         return PacketAction.NOTHING;
         // Override

@@ -219,6 +219,7 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
             case ServerboundPlayerActionPacket playerActionPacket -> msg = handlePlayerAction(playerActionPacket);
             case ServerboundSwingPacket swingPacket -> msg = handlePlayerArm(swingPacket);
             case ServerboundInteractPacket interactPacket -> msg = handleInteract(interactPacket);
+            case ServerboundMovePlayerPacket movePlayerPacket -> msg = handlePlayerPosition(movePlayerPacket);
             default -> {}
         }
 
@@ -283,6 +284,26 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
             PacketAction pluginAction = plugin.getPacketInterface().readEntityHandle(player, wrapper);
             if (pluginAction != PacketAction.NOTHING) action.set(pluginAction);
 
+        });
+        if (action.get() == PacketAction.CANCELLED) return null;
+        return packet;
+    }
+
+    private Packet<?> handlePlayerPosition(@NotNull ServerboundMovePlayerPacket packet) {
+        PlayerPositionWrapper wrapper = new PlayerPositionWrapper(
+            packet.getX(0),
+            packet.getY(0),
+            packet.getZ(0),
+            packet.getYRot(0),
+            packet.getXRot(0),
+            packet.hasPosition(),
+            packet.hasRotation()
+        );
+
+        AtomicReference<PacketAction> action = new AtomicReference<>(PacketAction.NOTHING);
+        SubPlugins.getSubPlugins().forEach(plugin -> {
+            PacketAction pluginAction = plugin.getPacketInterface().readPlayerPosition(player, wrapper);
+            if (pluginAction != PacketAction.NOTHING) action.set(pluginAction);
         });
         if (action.get() == PacketAction.CANCELLED) return null;
         return packet;
