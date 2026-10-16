@@ -22,6 +22,10 @@ public interface PacketInterface {
         return PacketAction.NOTHING;
     }
 
+    default PacketAction writePlayerPosition(@NotNull Player player, @NotNull PlayerTeleportWrapper wrapper) {
+        return PacketAction.NOTHING;
+    }
+
     default PacketAction readInventoryClick(@NotNull Player player, @NotNull InventoryClickWrapper wrapper) {
         return PacketAction.NOTHING;
         // Override

@@ -12,10 +12,13 @@ import me.lojosho.hibiscuscommons.plugins.SubPlugins;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -48,6 +51,7 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
             case ClientboundSetEquipmentPacket equipmentPacket -> msg = handlePlayerEquipment(equipmentPacket);
             case ClientboundSetPassengersPacket passengerPacket -> msg = handlePassengerSet(passengerPacket);
             case ClientboundUpdateAttributesPacket attributesPacket -> msg = handleScaleChange(attributesPacket);
+            case ClientboundPlayerPositionPacket positionPacket -> msg = handlePlayerPosition(positionPacket);
             default -> {}
         }
 
@@ -168,7 +172,7 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
 
         if (action.get() == PacketAction.CANCELLED) return null;
         if (action.get() == PacketAction.NOTHING) return packet;
-        return (Packet<?>) NMSHandlers.getHandler().getPacketBuilder().buildEntityMountPacket(ownerId, passengers.stream().mapToInt(Integer::intValue).toArray());
+        return (Packet<?>) NMSHandlers.getHandler().getPacketBuilder().buildEntityMountPacket(ownerId, wrapper.getPassengers().stream().mapToInt(Integer::intValue).toArray());
     }
 
     private Packet<?> handleScaleChange(@NotNull ClientboundUpdateAttributesPacket packet) {
@@ -206,6 +210,30 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
         return packet;
     }
 
+    private Packet<?> handlePlayerPosition(@NotNull ClientboundPlayerPositionPacket packet) {
+        PositionMoveRotation change = packet.change();
+        Vec3 position = change.position();
+        Set<Relative> relatives = packet.relatives();
+        org.bukkit.Location current = player.getLocation();
+
+        PlayerTeleportWrapper wrapper = new PlayerTeleportWrapper(
+            packet.id(),
+            relatives.contains(Relative.X) ? current.getX() + position.x : position.x,
+            relatives.contains(Relative.Y) ? current.getY() + position.y : position.y,
+            relatives.contains(Relative.Z) ? current.getZ() + position.z : position.z,
+            relatives.contains(Relative.Y_ROT) ? current.getYaw() + change.yRot() : change.yRot(),
+            relatives.contains(Relative.X_ROT) ? current.getPitch() + change.xRot() : change.xRot()
+        );
+
+        AtomicReference<PacketAction> action = new AtomicReference<>(PacketAction.NOTHING);
+        SubPlugins.getSubPlugins().forEach(plugin -> {
+            PacketAction pluginAction = plugin.getPacketInterface().writePlayerPosition(player, wrapper);
+            if (pluginAction != PacketAction.NOTHING) action.set(pluginAction);
+        });
+        if (action.get() == PacketAction.CANCELLED) return null;
+        return packet;
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (!(msg instanceof Packet packet)) {
@@ -218,7 +246,6 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
             case ServerboundPlayerActionPacket playerActionPacket -> msg = handlePlayerAction(playerActionPacket);
             case ServerboundSwingPacket swingPacket -> msg = handlePlayerArm(swingPacket);
             case ServerboundInteractPacket interactPacket -> msg = handleInteract(interactPacket);
-            case ServerboundMovePlayerPacket movePlayerPacket -> msg = handlePlayerPosition(movePlayerPacket);
             case ServerboundClientCommandPacket clientCommandPacket -> msg = handleClientCommand(clientCommandPacket);
             default -> {}
         }
@@ -284,26 +311,6 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
             PacketAction pluginAction = plugin.getPacketInterface().readEntityHandle(player, wrapper);
             if (pluginAction != PacketAction.NOTHING) action.set(pluginAction);
 
-        });
-        if (action.get() == PacketAction.CANCELLED) return null;
-        return packet;
-    }
-
-    private Packet<?> handlePlayerPosition(@NotNull ServerboundMovePlayerPacket packet) {
-        PlayerPositionWrapper wrapper = new PlayerPositionWrapper(
-            packet.getX(0),
-            packet.getY(0),
-            packet.getZ(0),
-            packet.getYRot(0),
-            packet.getXRot(0),
-            packet.hasPosition(),
-            packet.hasRotation()
-        );
-
-        AtomicReference<PacketAction> action = new AtomicReference<>(PacketAction.NOTHING);
-        SubPlugins.getSubPlugins().forEach(plugin -> {
-            PacketAction pluginAction = plugin.getPacketInterface().readPlayerPosition(player, wrapper);
-            if (pluginAction != PacketAction.NOTHING) action.set(pluginAction);
         });
         if (action.get() == PacketAction.CANCELLED) return null;
         return packet;
