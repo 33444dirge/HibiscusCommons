@@ -11,19 +11,22 @@ import java.util.List;
 public class SubPlugins {
 
     private static final List<HibiscusPlugin> SUB_PLUGINS = new ArrayList<>();
+    private static volatile List<HibiscusPlugin> snapshot = ImmutableList.of();
 
     @NotNull
     public static List<HibiscusPlugin> getSubPlugins() {
-        return ImmutableList.copyOf(SUB_PLUGINS);
+        return snapshot;
     }
 
     @ApiStatus.Internal
-    public static void addSubPlugin(@NotNull HibiscusPlugin plugin) {
+    public static synchronized void addSubPlugin(@NotNull HibiscusPlugin plugin) {
         SUB_PLUGINS.add(plugin);
+        snapshot = ImmutableList.copyOf(SUB_PLUGINS);
     }
 
     @ApiStatus.Internal
-    public static void removeSubPlugin(@NotNull HibiscusPlugin plugin) {
+    public static synchronized void removeSubPlugin(@NotNull HibiscusPlugin plugin) {
         SUB_PLUGINS.remove(plugin);
+        snapshot = ImmutableList.copyOf(SUB_PLUGINS);
     }
 }
