@@ -41,6 +41,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -51,7 +52,6 @@ import org.bukkit.craftbukkit.attribute.CraftAttribute;
 import org.bukkit.craftbukkit.entity.CraftEntityType;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -236,21 +236,21 @@ public class NMSPackets implements NMSPacketBuilder {
 
     @Override
     public Object buildPlayerScoreboardRemovePacket(Player player, String name) {
-        PlayerTeam team = new PlayerTeam(((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle(), name);
+        PlayerTeam team = new PlayerTeam(new Scoreboard(), name);
         team.setNameTagVisibility(Team.Visibility.NEVER);
         return ClientboundSetPlayerTeamPacket.createRemovePacket(team);
     }
 
     @Override
     public Object buildPlayerScoreboardCreatePacket(Player player, String name) {
-        PlayerTeam team = new PlayerTeam(((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle(), name);
+        PlayerTeam team = new PlayerTeam(new Scoreboard(), name);
         team.setNameTagVisibility(Team.Visibility.NEVER);
         return ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true);
     }
 
     @Override
     public Object buildPlayerScoreboardAddPlayersPacket(Player player, String name) {
-        PlayerTeam team = new PlayerTeam(((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle(), name);
+        PlayerTeam team = new PlayerTeam(new Scoreboard(), name);
         team.setNameTagVisibility(Team.Visibility.NEVER);
         return ClientboundSetPlayerTeamPacket.createMultiplePlayerPacket(team, new ArrayList<String>() {{
             add(name);
